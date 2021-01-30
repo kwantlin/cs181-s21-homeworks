@@ -44,6 +44,7 @@ def checker_t1_p2():
         if knn2_checker:
             knn2_checker = "Pass"
         else:
+            print("My pred:", predict_knn(2))
             knn2_checker = "Fail"
 
     if len(knn_8)!=len(predict_knn(8)):
@@ -53,6 +54,7 @@ def checker_t1_p2():
         if knn8_checker:
             knn8_checker = "Pass"
         else:
+            print("My pred:", predict_knn(8))
             knn8_checker = "Fail"
 
     print("Your test case results are, for alpha = 0.5 and alpha = 6 respectively:", alpha05_checker, alpha6_checker)
