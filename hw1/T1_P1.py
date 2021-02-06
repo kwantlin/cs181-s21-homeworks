@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from sympy import symbols, diff
 
 data = [(0., 0., 0.),
         (0., 0.5, 0.),
@@ -11,7 +12,7 @@ data = [(0., 0., 0.),
         (1., 0.5, 1.),
         (1., 1., 1.)]
 
-alpha = 10
+alpha = 100
 
 W1 = alpha * np.array([[1., 0.], [0., 1.]])
 W2 = alpha * np.array([[0.1, 0.], [0., 1.]])
