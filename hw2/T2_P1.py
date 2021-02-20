@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as c
 import matplotlib.patches as mpatches
 from scipy.special import expit as sigmoid
+import time
 
 # This script requires the above packages to be installed.
 # Please implement the basis2, basis3, fit, and predict methods.
@@ -21,11 +22,11 @@ def basis1(x):
 
 # TODO: Implement this
 def basis2(x):
-    return None
+    return np.stack([np.ones(len(x)), x, np.power(x,2), np.power(x,3)], axis=-1)
 
 # TODO: Implement this
 def basis3(x):
-    return None
+    return np.stack([np.ones(len(x)), x, np.power(x,2), np.power(x,3), np.power(x,4), np.power(x,5)], axis=-1)
 
 class LogisticRegressor:
     def __init__(self, eta, runs):
@@ -44,10 +45,32 @@ class LogisticRegressor:
             self.W = w_init
         else:
             self.W = np.random.rand(x.shape[1], 1)
+        # print(self.W)
+        N = len(x)
+        for _ in range(10000):
+            avg_grad = np.array([[0]]*len(x[0]))
+            # print(avg_grad)
+            for i in range(N):
+                yhat = sigmoid(np.dot(self.W.T, x[i]))
+                new_avg_grad = []
+                for j in range(len(x[0])):
+                    new_avg_grad.append([avg_grad[j][0] + (yhat[0] - y[i][0]) * x[i][j]])
+                # np.add(avg_grad, (yhat[0] - y[i][0]) * x[i])
+                avg_grad = np.array(new_avg_grad)
+                # print(avg_grad)
+                # time.sleep(1)
+            # print(avg_grad)
+            avg_grad = (avg_grad / N)
+            # print(avg_grad[0])
+            # grad = np.array([[avg_grad[i]] for i in len(self.W)])
+            # print(avg_grad)
+            self.W = self.W - self.eta*avg_grad
+        # print("Found W \n", self.W)
+        return self.W
 
     # TODO: Fix this method!
     def predict(self, x):
-        return np.dot(x, self.W)
+        return sigmoid(np.dot(x, self.W))
 
 # Function to visualize prediction lines
 # Takes as input last_x, last_y, [list of models], basis function, title
@@ -114,9 +137,31 @@ if __name__ == "__main__":
     all_models = []
     for _ in range(10):
         x, y = generate_data(N)
+        # print(x)
         x_transformed = basis1(x)
+        # print(x_transformed.shape)
         model = LogisticRegressor(eta=eta, runs=runs)
         model.fit(x_transformed, y)
         all_models.append(model)
     # Here x and y contain last dataset:
-    visualize_prediction_lines(x, y, all_models, basis1, "exampleplot")
+    visualize_prediction_lines(x, y, all_models, basis1, "Basis 1")
+
+    all_models = []
+    for _ in range(10):
+        x, y = generate_data(N)
+        x_transformed = basis2(x)
+        model = LogisticRegressor(eta=eta, runs=runs)
+        model.fit(x_transformed, y)
+        all_models.append(model)
+    # Here x and y contain last dataset:
+    visualize_prediction_lines(x, y, all_models, basis2, "Basis 2")
+
+    all_models = []
+    for _ in range(10):
+        x, y = generate_data(N)
+        x_transformed = basis3(x)
+        model = LogisticRegressor(eta=eta, runs=runs)
+        model.fit(x_transformed, y)
+        all_models.append(model)
+    # Here x and y contain last dataset:
+    visualize_prediction_lines(x, y, all_models, basis3, "Basis 3")

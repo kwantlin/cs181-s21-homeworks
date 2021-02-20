@@ -19,6 +19,7 @@
 \usepackage{common}
 \usepackage{enumitem}
 \usepackage{bm}
+\usepackage{physics}
 \newcommand{\B}{\text{B}}
 \newcommand{\Beta}{\text{Beta}}
 
@@ -145,6 +146,28 @@ Keeping in mind that none of the model classes match the true generating process
 
 \subsection*{Solution}
 
+\begin{enumerate}
+    \item See T2\_P1.py
+    \item 
+Visuals:
+
+\includegraphics[width=.7\textwidth]{Basis 1.png}
+
+\includegraphics[width=.7\textwidth]{Basis 2.png}
+
+\includegraphics[width=.7\textwidth]{Basis 3.png}
+
+    \item We can observe the effects of the bias-variance trade-off from this visuals. Basis 1's model results in high bias and low variance, as we can see both from the individual and mean of learned models.  Basis 3's model results in high variance and low bias, as we can see that the data is overfit, while Basis 1's model is underfit. Basis 2 offers a balancing compromise, though variance for the individual models is still quite high. The effects of the high variance in individual models is reduced by taking a mean of the learned models, which exhibits a good balance between bias and variance. The basis, as it increases in number of parameters, is able to capture more exactly a particular dataset by drawing from increasingly large groups of function classes (with Basis 3 encompassing the most options). This results in, as the basis parameters increase, a closer fit per dataset. However, with too many parameters and too many function classes considered, overfitting occcurs, where the model threads through each data point exactly, but doesn't capture the true relationship/generating function very well, especially with a smaller dataset size. 
+    
+    \item Increasing the dataset for Basis 1 will not have a huge effect, since the bias will likely remain high due to the basis itself being an non-optimal (introduces a bias that is not similar to the true distribution). However, for Basis 2 and 3, additional data will reduce variance and lead to fits, especially the mean of learned models, that are closer to the true generating model. This will be especially true for Basis 2, since for Basis 3, the learned models might have lower variance since they will thread through more data points, which will hopefully be spread evenly such that we have fewer big jumps in the y-label across the x-values. However, with Basis 3, we might still see that the data is overfit unless we significantly increase the dataset size. I experimented with increasing to N=60, but still saw a lot of variance with Basis 3. Here are all my visuals for each basis, but for N=60, illustrating what I've just discussed in comparison to N=10. 
+    
+    \includegraphics[width=.7\textwidth]{Basis1-60pts.png}
+
+\includegraphics[width=.7\textwidth]{Basis2-60pts.png}
+
+\includegraphics[width=.7\textwidth]{Basis3-60pts.png}
+\end{enumerate}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem 2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -222,6 +245,95 @@ $\boldX^{-\top} := (\boldX^{\top})^{-1}$
 
 
 \subsection*{Solution}
+
+\begin{enumerate}
+    \item Using the product rule for logs multiple times, we get the following, as already shown partially in section:
+    
+    $\mathcal{L} = -\ln p(D; \boldsymbol{\pi}) = -\sum_{i=1}^n \ln p(\boldsymbol{x_i}, \boldsymbol{y_i}|\boldsymbol{\pi}) = -\sum_{i=1}^n (\ln p(\boldsymbol{x_i}|\boldsymbol{y_i}, \boldsymbol{\pi}) + \ln p(\boldsymbol{y_i}|\boldsymbol{\pi})) $
+    
+    $= -\sum_{i=1}^n [\sum_{j=1}^K y_{ij}(\ln p(\boldsymbol{x_i}|\boldsymbol{y_i} = C_j, \boldsymbol{\pi}) + \ln \pi_j)]$
+    
+    \item We can construct our Lagrange function as follows to incorporate the given constraint:
+    
+    $\mathcal{L(\boldsymbol{\pi}, \lambda)} = -\sum_{i=1}^n [\sum_{j=1}^K y_{ij}(\ln p(\boldsymbol{x_i}|\boldsymbol{y_i} = C_j, \boldsymbol{\pi}) + \ln \pi_j)] + \lambda((\sum_{j=1}^K \pi_j) - 1)$
+    
+    We take the two derivatives of this function with respect to our prior and lambda, and set them to zero to get the following:
+    
+    $\pdv{\mathcal{L}}{\pi_j} = \sum_{i=1}^N \frac{y_{ij}}{\pi_j} - \lambda = 0$
+    
+    $\frac{1}{\pi_j} \sum_{i=1}^N y_{ij} = -\lambda$
+    
+    $\pi_j = -\frac{1}{\lambda} \sum_{i=1}^N y_{ij}$
+    
+    $\pdv{\mathcal{L}}{\lambda} = (\sum_{j=1}^K \pi_j) - 1 = 0$
+    
+    $(\sum_{j=1}^K \pi_j) = 1$
+    
+    Substituting in from earlier, we get:
+    
+    $\sum_{i=1}^N[\sum_{j=1}^K -\frac{1}{\lambda} y_{ij}] = 1$
+    
+     $-\frac{1}{\lambda}\sum_{i=1}^N\sum_{j=1}^K  y_{ij} = 1$
+     
+     $-\frac{1}{\lambda}\sum_{i=1}^N 1 = 1$
+     
+     $-\frac{1}{\lambda}N = 1$
+     
+     $\lambda = -N$
+     
+     Substituting again, we get:
+     
+     $\hat{\pi}_j = \frac{1}{N} \sum_{i=1}^N y_{ij}$
+     
+     This result is intuitive since if we were to empirically estimate the probability that a certain class occurs, we would look to our dataset and count the number of times that class appears and divide by the size of our dataset. This is what the above expression captures.
+     
+     \item We can borrow some section results surrounding applying the log to the Gaussian pdf for the conditional probability portion of our loss to see that we will be taking the gradient of:
+     
+     $\sum_{i=1}^N y_{ik}[-\frac{1}{2}\ln |\boldsymbol{\Sigma}| - \frac{1}{2}(\boldsymbol{x_i} - \boldsymbol{\mu_k})^T \boldsymbol{\Sigma}^{-1}(\boldsymbol{x_i} - \boldsymbol{\mu_k})]$
+     
+     Note that $y_{ik}$ is derived from the on-hot encoding and is equal to 1 if the $i$th data point is in class $k$, otherwise, this is equal to 0. Taking the gradient (of this truncated portion of the loss that involves the $\boldsymbol{\mu_k}$ term, which is what we care about here) with respect to $\mu_k$ gives us:
+     
+     $\frac{1}{2}\sum_{i=1}^N y_{ik} \boldsymbol{\Sigma}^{-1}(\boldsymbol{x_i} - \boldsymbol{\mu_k})$
+     
+     \item We set the gradient from the previous part equal to zero to get the following:
+     
+     $\frac{1}{2}\sum_{i=1}^N y_{ik} \boldsymbol{\Sigma}^{-1}(\boldsymbol{x_i} - \boldsymbol{\mu_k}) = 0$
+     
+     $\sum_{i=1}^N y_{ik} \boldsymbol{\Sigma}^{-1}\boldsymbol{x_i}  = \sum_{i=1}^N y_{ik} \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu_k}$
+     
+     If we left multiply both sides by $\boldsymbol{\Sigma}$, we can then use the commutative property to left multiply it directly against the $\boldsymbol{\Sigma}^{-1}$ to get the identity matrix and essentially remove $\boldsymbol{\Sigma}$ from both sides we get
+     
+     $\sum_{i=1}^N y_{ik} \boldsymbol{x_i}  = \sum_{i=1}^N y_{ik} \boldsymbol{\mu_k}$
+     
+     Then, rearranging to solve for $\mu_k$ gives us:
+     
+     $\hat{\mu}_k = \frac{\sum_{i=1}^N y_{ik} \boldsymbol{x_i}}{\sum_{i=1}^N y_{ik} }$
+     
+     This answer is intuitive because if we were to get the mean of our x's for a certain class, we would only consider the data points of that class, sum the x's up, and divide by the number of data points we have in that class. This would essentially take the average of the x vectors from that class, which is what our expression captures. 
+     
+     \item  Again, we can borrow some section results surrounding applying the log to the Gaussian pdf for the conditional probability portion of our loss to see that we will be taking the gradient of:
+     
+     $\sum_{i=1}^N \sum_{j=1}^K y_{ij}[-\frac{1}{2}\ln |\boldsymbol{\Sigma}| - \frac{1}{2}(\boldsymbol{x_i} - \boldsymbol{\mu_j})^T \boldsymbol{\Sigma}^{-1}(\boldsymbol{x_i} - \boldsymbol{\mu_j})]$
+     
+     Note that unlike for Part 3, we still need to keep the $\sum_{j=1}^K$ portion of this expression because $\boldsymbol{\Sigma}$ is a part of each term of this sum, whereas $\mu_k$ was only part of the term of the sum for its associated $j=k$. 
+     
+     Taking the derivative of this expression (truncated portion of the loss that involves the $\boldsymbol{\Sigma}$ term) and using the matrix cookbook formulas, we get:
+     
+     $\sum_{i=1}^N\sum_{j=1}^K[-\frac{1}{2}\boldsymbol{\Sigma}^{-T} + \frac{1}{2}\boldsymbol{\Sigma}^{-T}(\boldsymbol{x_i} - \boldsymbol{\mu_j}) (\boldsymbol{x_i} - \boldsymbol{\mu_j})^T\boldsymbol{\Sigma}^{-T}]$.
+     
+     \item Setting the above gradient equal to zero, we have that:
+     
+     $\sum_{i=1}^N\sum_{j=1}^K[-\frac{1}{2}\boldsymbol{\Sigma}^{-T} + \frac{1}{2}\boldsymbol{\Sigma}^{-T}(\boldsymbol{x_i} - \boldsymbol{\mu_j}) (\boldsymbol{x_i} - \boldsymbol{\mu_j})^T\boldsymbol{\Sigma}^{-T}] = 0$
+     
+     Using a similar operation as seen before, we can right and left multiply each term in this sum and rearrange the result around the equal sign to get:
+     
+     $\sum_{i=1}^N\sum_{j=1}^K y_{ij}\boldsymbol{\Sigma}^T = \sum_{i=1}^N\sum_{j=1}^K y_{ij}(\boldsymbol{x_i} - \boldsymbol{\mu_j}) (\boldsymbol{x_i} - \boldsymbol{\mu_j})$.
+     
+     Then solving for $\boldsymbol{\Sigma} = \boldsymbol{\Sigma}^T$ gives us the following, where we can use the fact that $\boldsymbol{\Sigma}$ is symmetric (meaning $\boldsymbol{\Sigma} = \boldsymbol{\Sigma}^T$):
+     
+     $\boldsymbol{\Sigma} = \frac{\sum_{i=1}^N\sum_{j=1}^K y_{ij}(\boldsymbol{x_i} - \boldsymbol{\mu_j}) (\boldsymbol{x_i} - \boldsymbol{\mu_j})}{\sum_{i=1}^N\sum_{j=1}^K y_{ij}}$
+     
+\end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Problem 3
@@ -315,8 +427,78 @@ You'll also need to modify the hyperparameter
 values in \texttt{T2\_P3.py} for logistic regression.
 \end{framed}
 
+\newpage
 
 \subsection*{Solution}
+
+\begin{enumerate}
+    \item Plots:
+    
+    \includegraphics[width=.7\textwidth]{generative_result_separate_covariances.png}
+    
+    \includegraphics[width=.7\textwidth]{generative_result_shared_covariances.png}
+    
+    \includegraphics[width=.7\textwidth]{logistic_regression_result.png}
+    
+    \includegraphics[width=.7\textwidth]{knn1_result.png}
+    
+    \includegraphics[width=.7\textwidth]{knn3_result.png}
+    
+    \includegraphics[width=.7\textwidth]{knn5_result.png}
+    
+    The KNN plots all look distinctive from the other classifiers. With k=1, each predicted point takes the label from the "closest" data point, and as we increase k up to k=5, we end up taking the majority class (breaking ties arbitrarily using python's functionality) of the nearest 5 neighbors, which produces some perturbations in the boundaries between classes, especially since there are regions where, for example, green and red points are in close proximity. In those areas, there are, density-wise, more green points, leading the green portion to encroach on the red portion (bottom left). We can see something similar near the center of the plot as the red region encroaches on the blue region. 
+    
+    The Gaussian with separate covariances also looks uniquely distinctive, though it almost makes the most intuitive sense. This is because it is reasonable to assume, even beyond the x-data we have, that the different types of stars have distinctive qualities and stars of each type might vary against each other in a way that is distinct from the way other types vary against each other. Therefore, it is quite reasonable to think that the different star types are best classified with separate covariances, and the blue giant's region is able to carve out a distinctive sliver of area out of the red region because of the particular way that data varies in contrast to the way the dwarfs might. We don't see this type of "cut" of the blue region across the red region in any other plot. 
+    
+    The generative result with shared covariance looks quite similar to the logistic regression result. This is at least partially because, similar to the logistic regression, the boundaries of generative classification with shared covariance has linear boundaries, whereas generative with separate covariance has quadratic boundaries, enabling the aforementioned "cut" of the blue region. Since the logistic regression might be able to better penalize misclassified points over time and push boundaries a certain way to eliminate all outliers from misclassification, the logistic regression shows fewer misclassifed points whereas the generative with shared covariance doesn't penalize this as strictly but instead focuses on finding parameters that created distributions that best fit observed data.
+    
+    \item My final choice was a learning rate of 0.05 and a regularization strength of 0.001. This was motivated by the following loss results:
+    
+    \begin{center}
+        \begin{tabular}{ |c|c|c|c| } 
+         \hline
+         \eta / \lambda & $\lambda = 0.001$ & $\lambda = 0.01$ & $\lambda = 0.05$ \\
+         \hline
+         $\eta = 0.001$ & 4.273 & 6.929 & 11.412\\ 
+         \hline
+         $\eta = 0.01$ & 2.835 & 6.882 & 11.412\\ 
+         \hline
+         $\eta = 0.05$ & 2.829 & 6.882 & 11.412\\ 
+         \hline
+        \end{tabular}
+    \end{center}
+    
+    Overall, a lower learning rate led to lower speed of convergence, since the size of each update was relatively small, requiring more steps to achieve the same loss. Thus, the graphs of loss over time for lower learning rate had a more gradual slope, compared to higher learning rate, which had a much steeper fall in the loss over just a few steps. However, there were instances where if learning rate was set of 0.05, perhaps too high, the loss would oscillate around a value rather than continuing to decrease over time. Thus, a higher learning rate might affect the ability to converge, since the updates might cause the loss to jump back and forth around the true minimum, but never actually reach it. 
+    
+    The regularization strength essentially limits the magnitude of the elements of W. For this model, it seemed that stronger regularization resulted in slightly higher loss. This signals to us that regularization is not desired for this model and that we do want our terms of W to be freer to take more extreme values. There are perhaps cases where regularization can speed up rate of convergence, such as when the objective function is more oblong; in this case, regularization can make it more bowl-shaped and speed up convergence. However, regularization could also distract us from optimizing our "true" objective function and lead to slower convergence or even hinder our ability to truly achieve zero loss on our objective due to the addition of a regularization term/bias. This latter case seems to be what we observe for this model, with the regularization strength controlling our ability to convergence more than the learning rate it seems.
+    
+    Here is my plot for my final choice of these parameters:
+    
+    \includegraphics[width=.7\textwidth]{LogRegLoss.png}
+    
+    \item The generative with separate covariances has a loss of 63.9703598409242 and the generative with shared covariance has a loss of 116.39446507788162. Thus, the Gaussian with separate covariances has the lower loss, and this is because since the types of stars exhibited each their unique pattern of data, with the data points for each type varying in a unique way compared to data points for other star types, the separate covariances was able to capture this unique variation for each type and factor that into maximizing likelihood, which overall resulted in fewer giants (blue) being misclassfied. This intuitively makes sense, since with the current data trends, we would expect the giants data to trend down and to the right, perhaps cutting across the red region. Separate covariance thus is best able to capture the differences between different star types (which are likely data best generated from unique distributions that take into account the unique features of each star type), and thus makes realistically and intuitively the most sense. 
+    
+    \item We get the following predicted classifications:
+    
+    \begin{itemize}
+        \item Test star type predictions for Separate Covariance Gaussian Model: magnitude 6 and temperature 2: 0
+        \item Test star type predictions for Shared Covariance Gaussian Model:
+        magnitude 6 and temperature 2: 1
+        \item Test star type predictions for Linear Regression: magnitude 6 and temperature 2: 1
+        \item Test star type predictions for KNN Model with k=1:
+        magnitude 6 and temperature 2: 0
+        \item Test star type predictions for KNN Model with k=3:
+        magnitude 6 and temperature 2: 0
+        \item Test star type predictions for KNN Model with k=5:
+        magnitude 6 and temperature 2: 0
+    \end{itemize}
+
+    For previously mentioned reasons, the generative with separate covariance is likely the most trustworthy, but we would need more data to confirm the trends in each type of star. For the generative with shared covariance and logistic regression, which look quite similar as mentioned previously, it seems perhaps dubious that stars with both high magnitude and high temperature are all giants, where as those with high magnitude and low temperature are all dwarfs. These are regions where we have relatively little data, but if we were to perhaps fit trend lines individually to each star type, we might expect a result similar to the generative with separate covariance. Further data, again, would be necessary to confirm these results. With near identical justification, the predictions for the KNN are also dubious. This is especially true for KNN's since with little data, we are not able to make the best fine-grained predictions, especially for inputs that are "far" from all available data points. Therefore, we see huge swaths of the plot classified as dwarf, which might not be the truth. 
+    
+    It is also notable that despite the generative with separate covariance giving an "intuitive" result, it's NLL loss was still much higher than the logistic regression, which has been optimized to minimize this loss. The same can be seen when comparing the generative with shared covariance and logistic regression. That's not to say the boundaries are all that poorly made, but it is something to consider. 
+    
+    
+\end{enumerate}
 
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -324,12 +506,16 @@ values in \texttt{T2\_P3.py} for logistic regression.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{Name}
 
+Kathryn Wantlin
+
 \subsection*{Collaborators and Resources}
 Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?
+
+Nari, Andrew, Ryan, Sanjana, Mark, Yash's OH. Also collaborated with Justine Boudou and used section results.
 
 \subsection*{Calibration}
 Approximately how long did this homework take you to complete (in hours)? 
 
-
+15 hrs
 
 \end{document}
