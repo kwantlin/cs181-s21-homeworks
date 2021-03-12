@@ -18,6 +18,9 @@
 \usepackage{common}
 \usepackage{enumitem}
 \usepackage{bm}
+\usepackage{listings}
+\usepackage{physics}
+\usepackage[shortlabels]{enumitem}
 \newcommand{\B}{\text{B}}
 \newcommand{\Beta}{\text{Beta}}
 
@@ -132,6 +135,118 @@ Please submit your \textbf{\LaTeX file and code files to the Gradescope assignme
 
 \subsection*{Solution:}
 
+\begin{enumerate}
+    \item Using the results of the paper, as well as Normal-Normal conjugacy, we see that $\mu|D$ is normally distributed with mean $\frac{\sum_i x_i}{\sigma^2(\frac{n}{\sigma^2} + \frac{1}{\tau^2})}$ and variance $\frac{1}{\frac{n}{\sigma^2} + \frac{1}{\tau^2}}$. Therefore, we see that 
+    
+    $$p(\mu|D) = \frac{1}{\sqrt{2\pi \frac{1}{\frac{n}{\sigma^2} + \frac{1}{\tau^2}}}}\exp{-\frac{\frac{n}{\sigma^2} + \frac{1}{\tau^2}}{2}(\mu - \frac{\sum_i x_i}{\sigma^2(\frac{n}{\sigma^2} + \frac{1}{\tau^2})})^2}$$
+    
+    \item $p(x^*|D) = \int p(x^*|\mu)p(\mu|D) d\mu = \int N(x|\mu, \sigma) N(\mu|\mu_n, \sigma_n^2)d\mu$, where $\mu_n = \frac{\sum_i x_i}{\sigma^2(\frac{n}{\sigma^2} + \frac{1}{\tau^2})}$ and $\sigma_n^2 = \frac{1}{\frac{n}{\sigma^2} + \frac{1}{\tau^2}}$ from above. From general properties of the Gaussian distribution, this means that $p(x^*|D) = N(\frac{\sum_i x_i}{\sigma^2(\frac{n}{\sigma^2} + \frac{1}{\tau^2})}, \sigma^2 + \frac{1}{\frac{n}{\sigma^2} + \frac{1}{\tau^2}})$.
+    
+    
+    The variance in this expression captures the uncertainty due to the observation noise plus the uncertainty due to the parameters. The mean is updated in a way such that over time and with more data, $n$ comes to dominate the denominator, pushing the mean of the distribution toward the sample mean.
+    
+    \item For $\mu_{\text{MLE}}$, we want to find the $\mu^*$ that maximizes the log likelihood of $\mu|D$. We see the following:
+    
+    $L = \log(p(\mu|D)) = \log(\prod_{x\in D} p(x)) = \log(\prod_{x\in D} p(\epsilon = x - \mu)) = \sum_{x\in D} \log(\frac{1}{\sqrt{2\pi\sigma^2}}\exp{-\frac{1}{2}(\frac{x-\mu}{\sigma})^2})$.
+    
+    We want to find the $\mu_{\text{MLE}}$ that maximizes this so we take its derivative with respect to $\mu$. This gives us :
+    
+    $$\pdv{L}{\mu} = \frac{1}{2}\sum_{x \in D} (\frac{x-\mu}{\sigma})^2 = 0$$
+    
+    $$\sum_{x \in D} \mu = \sum_{x \in D} x$$
+    
+    $$\mu = \mu_{\text{MLE}} = \frac{\sum_{x \in D}}{|D|}$$
+    
+    This means that $p(x^*|\mu_{\text{MLE}}) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp{-\frac{1}{2}(\frac{x^* - \mu_{\text{MLE}}}{\sigma})^2}$
+    
+    For $\mu_{\text{MAP}}$, we want to find the mode of the distribution of $\mu|D$ found previously. We know that $p(\mu|D)$ is proportinoal to $p(D|\mu)p(\mu)$. We see the following:
+    
+    $p(\mu|D)  = [\prod_{x \in D} p(\epsilon = x-\mu)]p(\mu)$.
+    
+    We can take a log of this expression and the $\mu$ that maximizes the logged expression will still maximize our original expression, but calculations will be easier. We want to find the $\mu$ then that maximizes the following:
+    
+    $\sum_{x \in D} [\log p(\epsilon = x - \mu)] + \log p(\mu)$.
+    
+    Rewriting this and removing unnecessary terms that don't depend on $\mu$, we see that we will take the derivative of the following expression with respect to $\mu$ and set it to 0 to get our $\mu_{\text{MAP}}$:
+    
+    $$\sum_{x \in D} [\frac{1}{2}(\frac{x-\mu}{\sigma^2})^2] + \frac{1}{2}(\frac{\mu}{\tau})^2$$.
+    
+    Taking the derivative we get:
+    
+    $$-\frac{1}{\sigma^2}\sum_{x \in D} (x-\mu) + \frac{\mu}{\tau^2} = 0$$
+    
+    $$-\frac{1}{\sigma^2} \sum_{x \in D} + \frac{n\mu}{\sigma^2} + \frac{\mu}{\tau^2} = 0$$
+    
+    $$\mu_{\text{MAP}} = \frac{\sum_{x \in D}x}{\frac{\sigma^2}{\tau^2}+n}$$
+    
+    This means that $p(x^*|\mu_{\text{MAP}}) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp{-\frac{1}{2}(\frac{x^* - \mu_{\text{MAP}}}{\sigma})^2}$
+    
+    The MAP-approximator, like the posterior predictive, considers the prior distribution in the mean of its associated predictive distribution. However, both the MLE-approximate and the MAP-approximate maintain the prior variance. The MLE-approximator's mean entire relies on the sample data. However, with enough data, all these approximators' means should converge to a similar value. 
+    
+    \item Plots:
+    
+    \includegraphics[width=.3\textwidth]{base.png}
+    \includegraphics[width=.3\textwidth]{iter1.png}
+    \includegraphics[width=.3\textwidth]{iter2.png}
+    
+    \includegraphics[width=.3\textwidth]{iter3.png}
+    \includegraphics[width=.3\textwidth]{iter4.png}
+    \includegraphics[width=.3\textwidth]{iter5.png}
+    
+    \includegraphics[width=.3\textwidth]{iter6.png}
+    \includegraphics[width=.3\textwidth]{iter7.png}
+    \includegraphics[width=.3\textwidth]{iter8.png}
+    
+    \includegraphics[width=.3\textwidth]{iter9.png}
+    \includegraphics[width=.3\textwidth]{iter10.png}
+    \includegraphics[width=.3\textwidth]{iter11.png}
+    
+    \includegraphics[width=.3\textwidth]{iter12.png}
+    \includegraphics[width=.3\textwidth]{iter13.png}
+    \includegraphics[width=.3\textwidth]{iter14.png}
+    
+    \item The means of the posterior predictive distribution and the MAP-estimated posterior get closer to the sample mean of the data as we get more data. The mean of the MLE-estimated poterior is always exactly the sample mean. The variances of the MAP-estimated and the MLE-estimated predictive distributions will remain at the variance of the prior distribution, while the variance of the posterior predictive will decrease. We can see this mathematically for the posterior predictive since as $n$ increases, the variance of the posterior predictive distribution will decrease. Then, since the mean of the posterior predictive can be written in terms of its variance, as variance decreases and becomes dominated by the $n$ term, similarly, the effect of other terms in the expression for the mean will become less important/cancel out, leaving the sample mean to prevail. The MAP-estimated predictive is affected by both the sample data and the prior, but similarly, as we get more data, its mean will tend toward the sample mean. Eventually, the effect of our real observations will shift us away from our assumed prior and toward the distribution encouraged by observations, which should be indicative, with a large enough dataset, of the true distribution.
+    
+    \item The ordering of the data does not matter for the final predictive distributions. We can see for the posterior predictive that variance updates dependent on the previous variance, but this is order agnostic. Similarly, the mean updates with the average of data observed so far, but order doesn't matter since it depends only on prior variance and updated variance, both of which are order agnostic. For the MLE-approximation, the mean is always the sample mean, and for the MAP-approximation, the mean depends on the sample mean and the variance, which stays constant at the variance of the prior (same for MLE-approximation). 
+    
+    \item 
+    
+    $p(D) = \int_{-\infty}^{\infty} p(D|\mu)p(\mu) d\mu = \int [\prod_{i=1}^n N(x_i | \mu, \sigma^2)]N(0, \tau^2)d\mu = \int[\prod_{i=1}^n \frac{1}{\sigma\sqrt{2\pi}}\exp{-\frac{1}{2}(\frac{x_i-\mu}{\sigma})^2}] \frac{1}{\tau\sqrt{2\pi}} \exp{-\frac{1}{2}(\frac{\mu}{\tau})^2}d\mu$
+    
+    $= \frac{1}{(\sigma\sqrt{2\pi})^n(\tau\sqrt{2\pi})}\int \exp(-\frac{1}{2\sigma^2}\sum_{i=1}^n (x_i - \mu)^2 - \frac{1}{2\tau^2}\mu^2)d\mu$
+    
+    Within in the integral of the expression, we see that:
+    
+    $\exp(-\frac{1}{2\sigma^2}\sum_{i=1}^n (x_i - \mu)^2 - \frac{1}{2\tau^2}\mu^2)d\mu $
+    
+    $\exp(-\frac{1}{2\sigma^2}(\sum{i=1}^n x_i^2) - \frac{1}{2\sigma^2}n\mu^2 - \frac{1}{2\tau^2}\mu^2 + \frac{\mu}{\sigma^2}\sum{i=1}^n x_i)$
+    
+    Moving constants outside the integral, we rewrite the full expression as:
+    
+    $\frac{\exp(-\frac{1}{2\sigma^2}\sum_{i=1}^n x_i^2)}{(\sigma\sqrt{2\pi})^n(\tau\sqrt{2\pi})}\int \exp(-\frac{1}{2}(\frac{1}{\sigma^2}n + \frac{1}{\tau^2})(\mu^2 - 2\mu\frac{\frac{1}{\sigma^2}\sum_{i=1}^n x_i}{\frac{n}{\sigma^2} + \frac{1}{\tau^2}})) d\mu$
+    
+    By completing the square by adding the requisite constant terms and moving things outside the integral where possible, we get:
+    
+    $\frac{\exp(-\frac{1}{2\sigma^2}\sum_{i=1}^n x_i^2)}{(\sigma\sqrt{2\pi})^n(\tau\sqrt{2\pi})}\exp(\frac{(\frac{1}{\sigma^2}\sum_{i=1}^n x_i)^2}{2(\frac{n}{\sigma^2} + \frac{1}{\tau^2})}) \int \frac{\sqrt{2\pi}}{\sqrt{2\pi}} \exp(-\frac{1}{2}(\frac{1}{\sigma^2}n + \frac{1}{\tau^2})(\mu - \frac{\frac{1}{\sigma^2}\sum_{i=1}^n x_i}{\frac{n}{\sigma^2} + \frac{1}{\tau^2}})^2) d\mu$
+    
+    The integral integrates to $\frac{\sqrt{2\pi}}{\sqrt{\frac{n}{\sigma^2} + \frac{1}{\tau^2}}}$, so we can rewrite the full expression as:
+    
+    $p(D) = \frac{\exp(-\frac{1}{2\sigma^2}\sum_{i=1}^n x_i^2)}{(\sigma\sqrt{2\pi})^n(\tau\sqrt{2\pi})}\exp(\frac{(\frac{1}{\sigma^2}\sum_{i=1}^n x_i)^2}{2(\frac{n}{\sigma^2} + \frac{1}{\tau^2})})\frac{\sqrt{2\pi}}{\sqrt{\frac{n}{\sigma^2} + \frac{1}{\tau^2}}}$
+    
+    Substituting in values, we get:
+    
+    $p(D) = \frac{\exp(-\frac{1}{2}(74.8937))}{(\sqrt{2\pi})^{14}(\sqrt{10\pi})}\exp(\frac{(29.63)^2}{2(14 + \frac{1}{5})})\frac{\sqrt{2\pi}}{\sqrt{2(14 + \frac{1}{5})}} = 3.15573*10^{-10}$
+    
+    \item 
+    
+    Substituting in values, we get:
+    
+    $p(D) = \frac{\exp(-\frac{1}{2}(74.8937))}{(\sqrt{2\pi})^{14}(\sqrt{0.2\pi})}\exp(\frac{(29.63)^2}{2(14 + 10)})\frac{\sqrt{2\pi}}{\sqrt{2(14 + 10)}} = 5.65665*10^{-15}$
+    
+    The original model had the higher marginal likelihood because the sample data has mean that is sufficiently far from zero that if we think we are more certain the true mean is 0, then it's less likely that we would have seen the data we have in these 14 samples, which have a mean skewed well in to positive.
+    
+\end{enumerate}
+
 \newpage
 \begin{problem}[Neural Net Optimization]
 
@@ -181,7 +296,68 @@ Please submit your \textbf{\LaTeX file and code files to the Gradescope assignme
 
 \subsection*{Solution:}
 
+\begin{enumerate}
+    \item 
+    
+    $\bold{x} \in \mathbb{R}^m $
+    
+    $\bold{z}_1 \in \mathbb{R}^H $
+    
+    $\bold{a}_1 \in \mathbb{R}^H $
+    
+    $\bold{b}_1 \in \mathbb{R}^H $
+    
+    $\bold{W}_1 \in \mathbb{R}^{H \times D} $
+    
+    $\bold{z}_2 \in \mathbb{R} $
+    
+    $\bold{a}_2 \in \mathbb{R} $
+    
+    $\bold{b}_2 \in \mathbb{R} $
+    
+    $\bold{W}_2 \in \mathbb{R}^{1 \times H} $
+    
+    \item 
+    
+\begin{enumerate}[(a)] % (a), (b), (c), ...
 
+
+    \item $\pdv{L}{b_2} = \pdv{L}{\hat{y}} \times \pdv{\hat{y}}{a_2} \times \dv{a_2}{b_2}$
+    
+    $\pdv{L}{\hat{y}} = -(\frac{y}{\hat{y}} + \frac{y-1}{1-\hat{y}}) = \frac{-y}{\hat{y}} + \frac{1-y}{1-\hat{y}} = \frac{-y + \hat{y}}{\hat{y}(1-\hat{y})}$
+    
+    $\pdv{\hat{y}}{a_2} = \pdv{}{a_2} \sigma(a_2) =  \sigma(a_2)(1 - \sigma(a_2)) =\hat{y}(1-\hat{y})$
+    
+    $\pdv{a_2}{b_2} = 1$
+    
+    $\pdv{L}{b_2} = -y + \sigma(a_2) $
+    
+    
+    \item  $\pdv{L}{W_2^h} = \pdv{L}{\hat{y}} \times \pdv{\hat{y}}{a_2} \times \pdv{a_2}{W_2^h}$
+    
+    $\pdv{a_2}{W_2^h} = z_1^h$
+    
+    $\pdv{L}{W_2^h} = (-y + \sigma(a_2))z_1^h$
+    
+    
+    \item $\pdv{L}{b_1^h} = \pdv{L}{\hat{y}} \times \pdv{\hat{y}}{a_2} \times \pdv{a_2}{z_1^h} \times \pdv{z_1^h}{a_1^h} \times \pdv{a_1^h}{b_1^h}$
+    
+    $\pdv{a_2}{z_1^h} = W_2^h$
+    
+    $\pdv{z_1^h}{a_1^h} = \sigma(a_1^h)(1-\sigma(a_1^h))$
+    
+    $\pdv{a_1^h}{b_1^h} = 1$
+    
+    $\pdv{L}{b_1^h} = (-y + \sigma(a_2))(W_2^h)\sigma(a_1^h)(1-\sigma(a_1^h))$
+    
+    \item $\pdv{L}{W_1^{h,m}} = \pdv{L}{\hat{y}} \times \pdv{\hat{y}}{a_2} \times \pdv{a_2}{z_1^h} \times \pdv{z_1^h}{a_1^h} \times \pdv{a_1^h}{W_1^{h,m}}$
+    
+    $\pdv{a_1^h}{W_1^{h,m}} = x_m$
+    
+    $\pdv{L}{W_1^{h,m}} = (-y + \sigma(a_2))(W_2^h)\sigma(a_1^h)(1-\sigma(a_1^h))(x_m)$
+\end{enumerate}
+    
+\end{enumerate}
 
 \newpage
 
@@ -218,17 +394,232 @@ Please submit your \textbf{\LaTeX file and code files to the Gradescope assignme
 
 \subsection*{Solution:}
 
+\begin{enumerate}
+    \item Any optimizer will always need the weights to be updated, and their corresponding gradients. In PyTorch, both of these quantities are stored together under model parameter variables. In particular, if var is a model weight, var.grad will contain a gradient with respect to var after backpropagation is performed.
+    \item 3 weights, from the linear/fully-connected layer.
+    \item A fully connected layer is a layer where all nodes in previous layer are connected to nodes in current layer. To create a fully connected layer in PyTorch, we use the nn.Linear method. The first argument to this method is the number of nodes in the layer, and the second argument is the number of nodes in the following layer.
+    \item Code for 3.4:
+\begin{lstlisting}
+class Part2NeuralNetwork(nn.Module):
+    def __init__(self):
+        super(Part2NeuralNetwork, self).__init__()
+        self.fc1 = torch.nn.Linear(3072, 1000) 
+        self.fc2 = torch.nn.Linear(1000, 1000) 
+        self.fc3 = torch.nn.Linear(1000, 10) 
+    
+    def forward(self, x):
+        self.batch_size = x.shape[0]
+        x = x.view(self.batch_size, -1)
+        # self.flatten_dim = x.shape[1]*x.shape[2]*x.shape[3]
+        # print(x.shape)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        return x
+\end{lstlisting}
+    
+\item Code for 3.5:
+\begin{lstlisting}
+
+# TODO - Complete NN training
+
+# Reinitialize to ensure we are training a new model
+model = Part2NeuralNetwork()
+model.to(device)
+
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+
+train_losses = []
+test_losses = []
+
+for epoch in range(10):
+    running_loss = 0.0
+    model.train(True)
+    for i, data in enumerate(trainloader, 0):
+        # Get inputs; data is a list of [inputs, labels]
+        xs, ys = data
+        xs = xs.to(device)
+        ys = ys.to(device)
+
+        ## TODO: optimize model parameters
+
+        # forward
+        y_pred = model(xs)
+        loss = loss_function(y_pred, ys)
+
+        optimizer.zero_grad()
+        
+        #backward
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
+    train_losses.append(running_loss / 50000)
+    print('[Epoch %d] average train loss: %.3f' % (epoch + 1, running_loss / 50000))
+    
+    model.train(False)
+    running_test_loss = 0.0
+    ## TODO: calculate test loss in similar fashion
+
+    for i, data in enumerate(testloader, 0):
+        # Get inputs; data is a list of [inputs, labels]
+        xs, ys = data
+        xs = xs.to(device)
+        ys = ys.to(device)
+        running_test_loss += loss.item()
+
+    test_losses.append(running_test_loss / 10000)
+    print('[Epoch %d] average test loss: %.3f' % (epoch + 1, running_test_loss / 10000))
+
+print('Finished Training')
+
+\end{lstlisting}
+
+Losses:
+
+[Epoch 1] average train loss: 0.061
+
+[Epoch 1] average test loss: 0.053
+
+[Epoch 2] average train loss: 0.051
+
+[Epoch 2] average test loss: 0.056
+
+[Epoch 3] average train loss: 0.047
+
+[Epoch 3] average test loss: 0.042
+
+[Epoch 4] average train loss: 0.044
+
+[Epoch 4] average test loss: 0.026
+
+[Epoch 5] average train loss: 0.042
+
+[Epoch 5] average test loss: 0.039
+
+[Epoch 6] average train loss: 0.040
+
+[Epoch 6] average test loss: 0.041
+
+[Epoch 7] average train loss: 0.038
+
+[Epoch 7] average test loss: 0.036
+
+[Epoch 8] average train loss: 0.036
+
+[Epoch 8] average test loss: 0.070
+
+[Epoch 9] average train loss: 0.034
+
+[Epoch 9] average test loss: 0.030
+
+[Epoch 10] average train loss: 0.033
+
+[Epoch 10] average test loss: 0.030
+
+Finished Training
+
+\includegraphics[width=.7\textwidth]{losses.png}
+
+\item 
+Model Train accuracy: 67 \%
+
+Model Test accuracy: 54 \%
+
+Model train precision for class 0 through 9, respectively: [0.70503876 0.81568228 0.53122172 0.60341151 0.60975104 0.54714384
+ 0.69519833 0.6999824  0.78943073 0.75186056]
+ 
+Model train recall for class 0 through 9, respectively: [0.7276 0.801  0.587  0.3396 0.5878 0.636  0.7326 0.7956 0.7738 0.7678]
+
+Model test precision for class 0 through 9, respectively: [0.62154433 0.68831169 0.43470149 0.38979964 0.46865365 0.43500425
+ 0.58760891 0.55611814 0.65875371 0.58519961]
+ 
+Model test recall for class 0 through 9, respectively: [0.652 0.636 0.466 0.214 0.456 0.512 0.607 0.659 0.666 0.601]
+
+Training Confusion Matrix:
+
+\includegraphics[width=.7\textwidth]{trainconfusion.png}
+
+Test Confusion Matrix:
+
+\includegraphics[width=.7\textwidth]{testconfusion.png}
+
+Confusion matrices give us complete information on what is getting misclassifed as what (anything not on the diagonal are misclassified instances). Referencing the CIFAR-10 labels, we see that in training, we get a high proportion of cat images (label 3) getting a predicted label of dog (label 5). This intuitively makes sense since the two images might share many similarities. I was surprised that not many trucks (label 9) in training got mislabelled as cars (label 1). However, in test, we see that this misclassification is much more likely (as well as the opposite misclassification error). It also seems that the errors made in training and magnified (bright cells in the same places are even brighter in test). This might point to a need for more data, especially to be able to separate classes which might share similarities. For example, it seems that animals are hard for the model to distinguish between. 
+\item For my new NN class, I know that generally bigger networks tend to be more predictive (more computational power = better classification), so I wanted to double the number of FC layers and double the number of nodes in each layer to see if this helps with classification:
+
+\begin{lstlisting}
+class Part2NeuralNetwork(nn.Module):
+    def __init__(self):
+        super(Part2NeuralNetwork, self).__init__()
+        self.fc1 = torch.nn.Linear(3072, 2000) 
+        self.fc2 = torch.nn.Linear(2000, 2000) 
+        self.fc3 = torch.nn.Linear(2000, 2000) 
+        self.fc4 = torch.nn.Linear(2000, 2000) 
+        self.fc5 = torch.nn.Linear(2000, 2000) 
+        self.fc6 = torch.nn.Linear(2000, 10) 
+
+    def forward(self, x):
+        self.batch_size = x.shape[0]
+        x = x.view(self.batch_size, -1)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+        x = F.relu(self.fc4(x))
+        x = F.relu(self.fc5(x))
+        x = F.relu(self.fc6(x))
+        return x
+\end{lstlisting}
+
+New NN Architecture Losses:
+
+\includegraphics[width=.7\textwidth]{newlosses.png}
+
+Model train accuracy: 64 \%
+
+Model test accuracy: 53 \%
+
+Model train precision for class 0 through 9, respectively: [0.69671653 0.76795367 0.59251031 0.42045099 0.54684299 0.51610954
+ 0.61956354 0.82261072 0.75475285 0.8591029 ]
+ 
+Model train recall for class 0 through 9, respectively: [0.7172 0.7956 0.3734 0.537  0.5872 0.5126 0.8006 0.7058 0.794  0.6512]
+
+Model test precision for class 0 through 9, respectively: [0.60309777 0.67255717 0.49917628 0.33111111 0.45352113 0.42745098
+ 0.52187029 0.67105263 0.63619744 0.68882603]
+ 
+Model test recall for class 0 through 9, respectively: [0.623 0.647 0.303 0.447 0.483 0.436 0.692 0.561 0.696 0.487]
+
+Model Train Confusion Matrix:
+
+\includegraphics[width=.7\textwidth]{newtrainconfusion.png}
+
+Model Test Confusion Matrix:
+
+\includegraphics[width=.7\textwidth]{newtestconfusion.png}
+
+From these confusion matrices, it seems that the issues cited for the original NN are exacerbated by this larger network. Things like cats and dogs, animals in general, and trucks vs. cars, are even harder for the model to distinguish. It might be possible that with a larger network, we need to train for longer to get the same results, but there are also other reasons this network performed worse (I tried a few runs, but it seemed consistently worse.) Perhaps, having fewer FC nodes means fewer features get passed between layers, and that the more pruned features are more characteristic, whereas with more layers and nodes, more noisy, non-predictive information gets passed between layers and impacts classification. Metrics for precision and recall are also worse, supporting the idea that for this particular classification task, a smaller FC network performs better. Perhaps there is also a ceiling on performance of FC networks for images, and a CNN would yield better results. 
+
+\end{enumerate}
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Name and Calibration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection*{Name}
 
+Kathryn Wantlin
+
 \subsection*{Collaborators and Resources}
 Whom did you work with, and did you use any resources beyond cs181-textbook and your notes?
+
+Justine Boudou
+
+Office Hours: Nari, Yash, Mark, Sanjana, Richard
+
+Paper linked in Question 1.
 
 \subsection*{Calibration}
 Approximately how long did this homework take you to complete (in hours)? 
 
+15 hrs.
 
 \end{document}
